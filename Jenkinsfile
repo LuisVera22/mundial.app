@@ -38,7 +38,7 @@ pipeline {
             }
         }
 
-        post: {
+        post {
             failure { echo 'Build falló'}
         }
     }
