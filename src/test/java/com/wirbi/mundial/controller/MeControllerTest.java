@@ -8,6 +8,7 @@ import com.wirbi.mundial.service.PredictionService;
 import com.wirbi.mundial.dto.PredictionDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * excepciones (lock → 409). Los servicios se mockean.
  */
 @WebMvcTest(MeController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class MeControllerTest {
 
     @Autowired
