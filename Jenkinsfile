@@ -37,9 +37,9 @@ pipeline {
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint:true, onlyIfSuccessful: true
             }
         }
+    }
 
-        post {
-            failure { echo 'Build falló'}
-        }
+    post {
+        failure { echo 'Build falló'}
     }
 }
