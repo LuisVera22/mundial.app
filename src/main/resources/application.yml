@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: mundial.app
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/mundial}
+      auto-index-creation: true
+  cloud:
+    azure:
+      active-directory:
+        # Protección del API con Microsoft Entra ID (valida los JWT emitidos
+        # para la app registrada). Apagada por defecto para desarrollo local.
+        enabled: ${AUTH_ENABLED:false}
+        profile:
+          tenant-id: ${AZURE_TENANT_ID:}
+        credential:
+          client-id: ${AZURE_CLIENT_ID:}
+        # Audiencia adicional aceptada: los access tokens v1 traen
+        # aud = api://<client-id> (los v2 traen el client-id a secas).
+        app-id-uri: api://${AZURE_CLIENT_ID:}
+
+server:
+  # Respeta el PORT que inyectan las plataformas (Render/Cloud Run/Railway).
+  port: ${PORT:8080}
+  # Detrás del balanceador: confía en X-Forwarded-* para detectar HTTPS
+  # (necesario para que Spring Security emita HSTS y arme URLs correctas).
+  forward-headers-strategy: framework
+
+# CORS: orígenes del front (Vite dev + lo que se configure en prod)
+app:
+  auth:
+    # true → todos los endpoints /api exigen un JWT válido de Entra ID.
+    enabled: ${AUTH_ENABLED:false}
+  rate-limit:
+    # Requests/min sostenidos por cliente en /api (ráfaga máxima = este valor).
+    per-minute: ${RATE_LIMIT_PER_MINUTE:120}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173, http://localhost:5174,http://localhost:4175}
+  current-user:
+    # Stub mientras no hay auth: usuario por defecto si no llega header X-Dev-User-Id.
+    # Se elimina al implementar Entra ID.
+    default-id: me
+  sync:
+    # true → al arrancar trae el calendario real desde football-data.org.
+    # Útil para poblar la BD sin POST manual (requiere FOOTBALL_DATA_TOKEN).
+    on-startup: ${SYNC_ON_STARTUP:false}
+    # Secreto del endpoint /internal/sync (para el cron de Cloud Scheduler).
+    # Vacío → el endpoint queda deshabilitado.
+    token: ${SYNC_TOKEN:}
+
+# Configuración del torneo (fechas fijas; ajustar a las reales del Mundial 2026)
+tournament:
+  start-at: ${TOURNAMENT_START:2026-06-11T16:00:00Z}
+  round-of-32-at: ${ROUND_OF_32:2026-06-28T00:00:00Z}        # inicio de dieciseisavos
+  round-of-16-at: ${ROUND_OF_16:2026-07-04T00:00:00Z}        # inicio de octavos
+  picks-deadline-at: ${PICKS_DEADLINE:2026-07-07T22:00:00Z}   # fin de octavos (Round of 16)
+  lock-minutes: 15
+  urgent-minutes: 60
+
+# Proveedor de datos: football-data.org (plan Free)
+football-data:
+  base-url: https://api.football-data.org/v4
+  competition: WC
+  api-token: ${FOOTBALL_DATA_TOKEN:}
+
+# Swagger: apagable en producción (SWAGGER_ENABLED=false) para no publicar
+# el mapa del API.
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
+    path: /swagger-ui.html
